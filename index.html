@@ -47,7 +47,7 @@ input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid var
 <div class="w" id="gate"><div class="c"><h1>🌿 Pěstování</h1><p class="sub" id="gmsg">Načítám…</p>
 <div id="gform" class="hid" style="margin-top:12px"><label class="sub">Tvoje IC jméno</label><input type="text" id="icn" maxlength="40" placeholder="např. Jan Novák"><button class="pri" id="icb" style="margin-top:10px">Pokračovat</button></div></div></div>
 <div class="w hid" id="app">
-<div class="tabs" id="tabs"><button data-t="calc" class="on">Kalkulačka</button><button data-t="mine">Moje várky</button></div>
+<div class="tabs" id="tabs"><button data-t="calc" class="on">Kalkulačka</button><button data-t="mine">Moje várky</button><button data-t="earn">💰 Výdělek</button></div>
 <div id="vcalc" style="display:grid;gap:14px">
 <div><h1>🌿 Kalkulačka pěstování</h1><p class="sub">Vyber počet rostlin, zadej co už máš a my spočítáme zbytek.</p></div>
 
@@ -56,6 +56,11 @@ input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid var
 <div class="row btns" style="margin-top:8px"><button data-a="1">+1</button><button data-a="5">+5</button><button data-a="10">+10</button><button data-a="-5">−5</button><button data-a="-10">−10</button></div>
 </div>
 
+<div class="c"><h2>Na kolik % chceš kytky nahnojit a zalít</h2>
+<div class="row"><input type="range" id="tg" min="10" max="100" step="5" value="100"><b class="big" id="tgl" style="font-size:26px">100 %</b></div>
+<div class="row btns" style="margin-top:8px"><button data-p="25">25 %</button><button data-p="50">50 %</button><button data-p="75">75 %</button><button data-p="100">100 %</button></div>
+<div class="note">Hnojení i zalévání se počítá na tuto hodnotu, takže při 50 % stačí polovina surovin a klesnou i náklady.</div></div>
+
 <div class="c"><h2>Co už máš (zásoby)</h2>
 <div class="grid">
 <label>Hnojivo (normální)<input type="number" id="oFN" min="0" value="0"></label>
@@ -63,7 +68,7 @@ input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid var
 <label>Voda (normální)<input type="number" id="oWN" min="0" value="0"></label>
 <label>Výživná voda<input type="number" id="oWV" min="0" value="0"></label>
 </div>
-<div class="note">Zásoby se započítají jako procenta a zbytek se dokoupí. Např. 4 výživná hnojiva = 80 % pro jednu kytku.</div>
+<div class="note">Zásoby se rozdělují mezi kytky po celých kusech (jeden kus jde vždy jen na jednu kytku) a zbytek se dokoupí.</div>
 </div>
 
 <div class="c"><h2>Čím dokoupit zbytek</h2>
@@ -80,9 +85,9 @@ input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid var
 <div><div class="note" style="margin:0">Cena na 1 kytku</div><b id="per">0</b></div>
 <div><div class="note" style="margin:0">Ušetřeno zásobami</div><b id="saved">0</b></div>
 </div>
-<div class="note" style="margin-top:12px">Hnojení pokryto</div><div class="bar"><i id="bf"></i></div>
-<div class="note">Zalévání pokryto</div><div class="bar"><i id="bw"></i></div>
-<div class="note" id="extra"></div>
+<div class="note" style="margin-top:12px">Hnojení pokryto zásobami</div><div class="bar"><i id="bf"></i></div>
+<div class="note">Zalévání pokryto zásobami</div><div class="bar"><i id="bw"></i></div>
+<div class="note" id="rec" style="margin-top:12px"></div><div class="note" id="extra"></div>
 </div>
 
 <details class="c"><summary>⚙️ Nastavení cen a procent</summary>
@@ -101,61 +106,82 @@ input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid var
 <div class="c"><button class="pri" id="confirm">✅ Potvrdit nákup a založit várku</button><div class="note">Uloží se počet kytek a náklady. Zásoby se vynulují, protože se spotřebovaly.</div></div>
 </div>
 <div id="vmine" class="hid" style="display:grid;gap:14px"><div class="c"><h2>Moje statistiky <span class="sub" id="who"></span></h2><div class="st" id="mst"></div></div><div class="c"><h2>Moje várky</h2><div class="note">Data jsou uložená jen v tomto prohlížeči na tomto zařízení.</div><div id="blist"></div></div></div>
+
+<div id="vearn" class="hid" style="display:grid;gap:14px">
+<div class="c"><h2>Prodej kanabisu</h2><div class="note" style="margin:0 0 8px">5 kusů stejného druhu = 1 sáček. Zadej počet kusů a cenu za sáček.</div>
+<div class="row" style="margin-bottom:10px"><label class="note" style="flex:1">Hromadná cena za sáček (všechny druhy)<input type="number" min="0" id="epall" placeholder="např. 500" style="width:100%;margin-top:4px"></label><button class="sm" id="epbtn" style="margin-top:18px">Použít na všechny</button></div>
+<div id="erows"></div></div>
+<div class="c"><h2>Náklady a kytky</h2>
+<label class="note">Načíst z várky (nepovinné)<select id="ebs" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:15px;margin:4px 0 10px"></select></label>
+<div class="grid"><label>Z kolika kytek<input type="number" id="epl" min="0" value="0"></label><label>Celkové náklady ($)<input type="number" id="eco" min="0" value="0"></label></div></div>
+<div class="c"><h2>Výsledek</h2><div class="st"><div><b id="e1">0</b><span>sáčků</span></div><div><b id="e2">0 $</b><span>tržba</span></div><div><b id="e3">0 $</b><span>profit / loss</span></div></div>
+<div class="note" id="e4" style="margin-top:10px"></div>
+<button class="pri" id="esave" style="margin-top:12px">💾 Uložit do statistik</button></div>
+<div class="c"><h2>📊 Statistiky</h2><div class="st" id="sst"></div><div id="scol" style="margin-top:12px"></div></div>
+<div class="c"><h2>Historie prodejů</h2><div id="shist"></div></div>
+</div>
 </div>
 <script>
 const $=id=>document.getElementById(id);
 let mode="mix",LAST=null,S={name:'',batches:[],cfg:{}},UID=null,DB=null,IS_OWNER=false,saveT=null;
 const v=id=>Math.max(0,parseFloat($(id).value)||0);
 const fmt=n=>Math.round(n).toLocaleString("cs-CZ")+" $";
+function plan(T,a,b,sa,sb){ // a=normální, b=výživné; sa,sb = zásoby; vrací nejlepší kombinaci pro JEDNU kytku
+  let best=null;const maxY=Math.ceil(T/b.c);
+  for(let y=0;y<=maxY;y++){
+    const x=Math.ceil(Math.max(0,T-y*b.c)/a.c);
+    const bx=Math.max(0,x-sa),by=Math.max(0,y-sb);
+    if(mode==="n"&&by>0)continue;if(mode==="v"&&bx>0)continue;
+    const cost=bx*a.p+by*b.p,over=x*a.c+y*b.c-T,cnt=x+y;
+    if(!best||cost<best.cost||(cost===best.cost&&(over<best.over||(over===best.over&&cnt<best.cnt))))best={x,y,bx,by,cost,over,cnt};
+  }
+  return best;}
 function calc(){
-  const n=v("rn"),need=n*100;
+  const n=Math.floor(v("rn")),tg=v("tg");$("tgl").textContent=tg+" %";
   const items=[
-   {k:"F",name:"Hnojivo (normální)",own:v("oFN"),c:v("cFN"),p:v("pFN")},
-   {k:"F",name:"Výživné hnojivo",own:v("oFV"),c:v("cFV"),p:v("pFV")},
-   {k:"W",name:"Voda (normální)",own:v("oWN"),c:v("cWN"),p:v("pWN")},
-   {k:"W",name:"Výživná voda",own:v("oWV"),c:v("cWV"),p:v("pWV")}];
-  let total=0,saved=0,rows="",extra=[];
-  const res={};
-  ["F","W"].forEach((k,i)=>{
-    const [a,b]=k==="F"?[items[0],items[1]]:[items[2],items[3]];
-    const have=a.own*a.c+b.own*b.c;
-    const rem=Math.max(0,need-have);
-    // mix: nejlevnější kombinace
-    let qa=0,qb=0;
-    if(rem>0){
-      if(mode==="n")qa=Math.ceil(rem/a.c);
-      else if(mode==="v")qb=Math.ceil(rem/b.c);
-      else{
-        let bestT=1e18,bestS=1e9,maxB=Math.ceil(rem/b.c);
-        for(let y=0;y<=maxB;y++){const x=Math.ceil(Math.max(0,rem-y*b.c)/a.c);
-          const t=x*a.p+y*b.p,s=x+y;
-          if(t<bestT||(t===bestT&&s<bestS)){bestT=t;bestS=s;qa=x;qb=y;}}
+   {name:"Hnojivo (normální)",own:v("oFN"),c:v("cFN"),p:v("pFN")},
+   {name:"Výživné hnojivo",own:v("oFV"),c:v("cFV"),p:v("pFV")},
+   {name:"Voda (normální)",own:v("oWN"),c:v("cWN"),p:v("pWN")},
+   {name:"Výživná voda",own:v("oWV"),c:v("cWV"),p:v("pWV")}];
+  let total=0,saved=0,rows="",extra=[],rec=[];
+  [["F",0,1,"hnojivo","bf"],["W",2,3,"voda","bw"]].forEach(([k,i,j,nm,bar])=>{
+    const a=items[i],b=items[j];a.buy=0;b.buy=0;
+    let sa=a.own,sb=b.own,usedPct=0;
+    if(tg>0&&a.c>0&&b.c>0){
+      const one=plan(tg,a,b,0,0);
+      if(one)rec.push(`${nm[0].toUpperCase()+nm.slice(1)}: ${one.x?one.x+"× normální":""}${one.x&&one.y?" + ":""}${one.y?one.y+"× výživné":""} = ${tg+one.over} %`+(one.over?` (přebývá ${one.over} %)`:""));
+      if(one&&one.over>0)extra.push(nm[0].toUpperCase()+nm.slice(1)+": kvůli celým kusům přebývá "+one.over+" % na každou kytku.");
+      for(let q=0;q<n;q++){
+        const p=plan(tg,a,b,sa,sb);if(!p)break;
+        const ux=Math.min(p.x,sa),uy=Math.min(p.y,sb);
+        sa-=ux;sb-=uy;usedPct+=ux*a.c+uy*b.c;saved+=ux*a.p+uy*b.p;
+        a.buy+=p.bx;b.buy+=p.by;
       }
     }
-    a.buy=qa;b.buy=qb;
-    const cover=need?Math.min(100,(have+qa*a.c+qb*b.c)/need*100):0;
-    const over=have+qa*a.c+qb*b.c-need;
-    if(over>0&&need>0)extra.push((k==="F"?"Hnojivo":"Voda")+": přebývá "+Math.round(over)+" % (zbytek propadne / ušetříš na další várku).");
-    saved+=a.own*a.p+b.own*b.p;
-    $(k==="F"?"bf":"bw").style.width=(need?Math.min(100,have/need*100):0)+"%";
+    const need=n*tg;
+    $(bar).style.width=(need?Math.min(100,usedPct/need*100):0)+"%";
   });
   items.forEach(it=>{const c=it.buy*it.p;total+=c;
     rows+=`<tr><td>${it.name}</td><td><b>${it.buy}×</b></td><td>${it.p} $</td><td>${fmt(c)}</td></tr>`;});
   $("tb").innerHTML=rows;
   $("total").textContent=fmt(total);LAST={total,items:items.map(i=>({n:i.name,q:i.buy}))};
   $("per").textContent=n?fmt(total/n):"0 $";
-    $("saved").textContent=fmt(Math.min(saved,n*(100/v("cFN")*v("pFN")+100/v("cWN")*v("pWN"))));
+  $("saved").textContent=fmt(saved);
+  $("rec").innerHTML=rec.length?"<b>Na 1 kytku (bez zásob):</b><br>"+rec.join("<br>"):"";
   $("extra").textContent=extra.join(" ");
 }
+
 function setN(x){x=Math.max(0,Math.round(x));$("rn").value=x;if(x>+$("rs").max)$("rs").max=x;$("rs").value=x;calc();}
 $("rs").oninput=e=>setN(+e.target.value);
 $("rn").oninput=e=>setN(v("rn"));
 document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>setN(v("rn")+ +b.dataset.a));
 document.querySelectorAll("#mode button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll("#mode button").forEach(x=>x.classList.toggle("on",x===b));calc();});
 document.querySelectorAll("input[type=number]").forEach(i=>{if(i.id!=="rn")i.addEventListener("input",calc)});
+document.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{$("tg").value=b.dataset.p;calc();save();});
+$("tg").addEventListener("input",()=>{calc();save();});
 calc();
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const CFG=["pFN","pFV","pWN","pWV","cFN","cFV","cWN","cWV"];
+const CFG=["tg","pFN","pFV","pWN","pWV","cFN","cFV","cWN","cWV"];
 const KEY="pestovani_v1";
 function save(){S.cfg={};CFG.forEach(k=>S.cfg[k]=v(k));try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 CFG.forEach(k=>$(k).addEventListener("input",save));
@@ -174,13 +200,41 @@ $("blist").addEventListener("click",e=>{const t=e.target;if(!t.dataset.act)retur
  if(t.dataset.act==="done")S.batches[i].done=!S.batches[i].done;
  else if(confirm("Smazat tuto várku?"))S.batches.splice(i,1);renderMine();save();});
 $("confirm").onclick=()=>{if(!LAST||!v("rn"))return;
- S.batches.unshift({id:Date.now(),ts:Date.now(),plants:v("rn"),yield:0,done:false,cost:LAST.total,list:LAST.items.filter(x=>x.q).map(x=>x.q+"× "+x.n).join(", ")});
+ S.batches.unshift({id:Date.now(),ts:Date.now(),plants:v("rn"),yield:0,done:false,cost:LAST.total,list:(v("tg")<100?"Na "+v("tg")+" %: ":"")+LAST.items.filter(x=>x.q).map(x=>x.q+"× "+x.n).join(", ")});
  ["oFN","oFV","oWN","oWV"].forEach(k=>$(k).value=0);calc();renderMine();save();tab("mine");};
-function tab(t){["calc","mine"].forEach(x=>$("v"+x).classList.toggle("hid",x!==t));
+function tab(t){if(t==="earn")earnOpts();["calc","mine","earn"].forEach(x=>$("v"+x).classList.toggle("hid",x!==t));
  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));}
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+
+const COL=[["blue","Modrá","#3b82f6"],["green","Zelená","#22c55e"],["yellow","Žlutá","#eab308"],["red","Červená","#ef4444"],["purple","Fialová","#a855f7"]];
+$("erows").innerHTML='<div class="grid" style="grid-template-columns:90px 1fr 1fr;align-items:end;margin-bottom:6px"><span class="note">Druh</span><span class="note">Kusů</span><span class="note">Cena / sáček</span></div>'+COL.map(([k,n,c])=>`<div class="grid" style="grid-template-columns:90px 1fr 1fr;align-items:center;margin-bottom:2px"><b style="color:${c}">● ${n}</b><input type="number" min="0" value="0" id="ea_${k}"><input type="number" min="0" value="0" id="ep_${k}"></div><div class="note" id="es_${k}" style="margin:0 0 8px 100px"></div>`).join("");
+function earnCalc(){let rev=0,sk=0;
+ COL.forEach(([k])=>{const a=Math.floor(v("ea_"+k)),p=v("ep_"+k),sc=Math.floor(a/5),r=a%5;rev+=sc*p;sk+=sc;
+  $("es_"+k).textContent=sc+" sáčků"+(sc?" = "+fmt(sc*p):"")+(r?" (zbývá "+r+" ks)":"");});
+ const pl=v("epl"),co=v("eco"),pr=rev-co;
+ $("e1").textContent=sk;$("e2").textContent=fmt(rev);
+ $("e3").textContent=(pr>0?"+":"")+fmt(pr);$("e3").style.color=pr<0?"#e5484d":"";
+ $("e4").textContent=pl?`Na 1 kytku: tržba ${fmt(rev/pl)}, náklady ${fmt(co/pl)}, profit ${fmt(pr/pl)}.`:"Zadej počet kytek pro přepočet na 1 kytku.";
+ return{rev,sk,co,pl,pr};}
+function applyAll(){const x=$("epall").value;if(x==="")return;COL.forEach(([k])=>{$("ep_"+k).value=x});S.cp=S.cp||{};COL.forEach(([k])=>S.cp[k]=v("ep_"+k));save();earnCalc();}
+$("epbtn").onclick=applyAll;$("epall").addEventListener("input",applyAll);
+function earnOpts(){$("ebs").innerHTML='<option value="">– zadat ručně –</option>'+(S.batches||[]).map((b,i)=>`<option value="${i}">${new Date(b.ts).toLocaleDateString("cs-CZ")} · ${b.plants} kytek · ${fmt(b.cost)}</option>`).join("");}
+$("ebs").onchange=()=>{const b=S.batches[$("ebs").value];if(b){$("epl").value=b.plants;$("eco").value=b.cost;}earnCalc();};
+$("vearn").addEventListener("input",e=>{if(e.target.id.startsWith("ep_")){S.cp=S.cp||{};S.cp[e.target.id.slice(3)]=v(e.target.id);save();}earnCalc();});
+$("esave").onclick=()=>{const r=earnCalc();if(!r.sk&&!r.co)return;S.sales=S.sales||[];
+ const cols={};COL.forEach(([k])=>{const a=Math.floor(v("ea_"+k));if(a)cols[k]={a,p:v("ep_"+k)}});
+ S.sales.unshift({ts:Date.now(),plants:r.pl,cost:r.co,rev:r.rev,sacks:r.sk,cols});
+ COL.forEach(([k])=>$("ea_"+k).value=0);$("epl").value=0;$("eco").value=0;$("ebs").value="";save();earnCalc();renderStats();};
+function renderStats(){const L=S.sales||[];const t=L.reduce((a,x)=>({c:a.c+x.cost,r:a.r+x.rev,p:a.p+x.plants,s:a.s+x.sacks}),{c:0,r:0,p:0,s:0});const pr=t.r-t.c;
+ $("sst").innerHTML=`<div><b>${fmt(t.c)}</b><span>náklady celkem</span></div><div><b>${fmt(t.r)}</b><span>tržby celkem</span></div><div><b style="color:${pr<0?'#e5484d':''}">${pr>0?'+':''}${fmt(pr)}</b><span>profit / loss</span></div><div><b>${t.p}</b><span>kytek</span></div><div><b>${t.s}</b><span>sáčků</span></div><div><b>${t.p?fmt(pr/t.p):"0 $"}</b><span>profit / kytka</span></div>`;
+ $("sst").style.gridTemplateColumns="repeat(3,1fr)";
+ const cs={};L.forEach(x=>Object.entries(x.cols||{}).forEach(([k,o])=>{const c=cs[k]=cs[k]||{s:0,r:0};const sc=Math.floor(o.a/5);c.s+=sc;c.r+=sc*o.p;}));
+ const mx=Math.max(1,...Object.values(cs).map(c=>c.r));
+ $("scol").innerHTML=COL.filter(([k])=>cs[k]).map(([k,n,c])=>`<div class="note" style="margin-top:6px">${n}: ${cs[k].s} sáčků · ${fmt(cs[k].r)}</div><div class="bar"><i style="width:${cs[k].r/mx*100}%;background:${c}"></i></div>`).join("");
+ $("shist").innerHTML=L.length?L.map((x,i)=>{const p=x.rev-x.cost;return `<div class="b"><div class="row" style="justify-content:space-between"><b>${new Date(x.ts).toLocaleDateString("cs-CZ")}</b><b style="color:${p<0?'#e5484d':'var(--ac)'}">${p>0?'+':''}${fmt(p)}</b></div><div class="note">${x.plants} kytek · ${x.sacks} sáčků · tržba ${fmt(x.rev)} · náklady ${fmt(x.cost)}</div><button class="sm" data-d="${i}" style="margin-top:6px">🗑 Smazat</button></div>`}).join(""):'<div class="note">Zatím nic uloženo.</div>';}
+$("shist").addEventListener("click",e=>{const i=e.target.dataset.d;if(i!=null&&confirm("Smazat záznam?")){S.sales.splice(+i,1);save();renderStats();}});
 function start(){$("gate").classList.add("hid");$("app").classList.remove("hid");
- CFG.forEach(k=>{if(S.cfg&&S.cfg[k]!=null)$(k).value=S.cfg[k]});S.batches=S.batches||[];calc();renderMine();}
+ CFG.forEach(k=>{if(S.cfg&&S.cfg[k]!=null)$(k).value=S.cfg[k]});S.batches=S.batches||[];S.sales=S.sales||[];COL.forEach(([k])=>{if(S.cp&&S.cp[k]!=null)$("ep_"+k).value=S.cp[k]});calc();renderMine();earnOpts();earnCalc();renderStats();}
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign({name:"",batches:[],cfg:{}},JSON.parse(r));}catch(e){}
 if(S.name)start();else{$("gmsg").textContent="Než začneš, zadej své jméno postavy.";$("gform").classList.remove("hid");
  $("icb").onclick=()=>{const n=$("icn").value.trim();if(!n)return;S.name=n;save();start();};}
