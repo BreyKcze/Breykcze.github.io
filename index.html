@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="cs"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kalkulačka pěstování</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3f6f1;--card:#fff;--tx:#18241a;--mu:#5b6b5e;--ac:#2e9e4f;--ac2:#d8f0de;--bd:#dce5dc}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1611;--card:#18221b;--tx:#e8f2ea;--mu:#93a596;--ac:#4cc972;--ac2:#1f3a28;--bd:#2a3a2d}}
+:root[data-theme="dark"]{--bg:#0f1611;--card:#18221b;--tx:#e8f2ea;--mu:#93a596;--ac:#4cc972;--ac2:#1f3a28;--bd:#2a3a2d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px}
+.w{max-width:720px;margin:0 auto;display:grid;gap:14px}
+h1{margin:4px 0 0;font-size:26px}
+.sub{color:var(--mu);margin:0;font-size:14px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px}
+h2{margin:0 0 10px;font-size:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=range]{flex:1;min-width:160px;accent-color:var(--ac);height:28px}
+input[type=number]{width:90px;padding:8px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:16px}
+.big{font-size:34px;font-weight:700;color:var(--ac)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid label{display:grid;gap:4px;font-size:13px;color:var(--mu)}
+.grid input{width:100%}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:120px;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);cursor:pointer;font-size:14px}
+.seg button.on{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 4px;text-align:right;border-bottom:1px solid var(--bd)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mu);font-weight:500;font-size:12px}
+.tot{display:flex;justify-content:space-between;align-items:center;background:var(--ac2);border-radius:12px;padding:14px;margin-top:12px}
+.tot b{font-size:26px;color:var(--ac)}
+.note{font-size:12.5px;color:var(--mu);margin-top:8px}
+.bar{height:10px;background:var(--bd);border-radius:6px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--ac);width:0;transition:width .2s}
+details summary{cursor:pointer;font-weight:600}
+.btns button{padding:8px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);cursor:pointer}
+input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:16px}
+.pri{padding:12px 16px;border-radius:12px;border:0;background:var(--ac);color:#fff;font-size:16px;font-weight:600;cursor:pointer;width:100%}
+.sm{padding:6px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);cursor:pointer;font-size:13px}
+.tabs{display:flex;gap:6px}.tabs button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;font-weight:600}.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.b{border:1px solid var(--bd);border-radius:12px;padding:10px;margin-top:8px}.b.done{opacity:.85;background:var(--ac2)}
+.st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.st b{font-size:20px;color:var(--ac);display:block}.st span{font-size:12px;color:var(--mu)}
+.hid{display:none!important}
+@media(max-width:480px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="w" id="gate"><div class="c"><h1>🌿 Pěstování</h1><p class="sub" id="gmsg">Načítám…</p>
+<div id="gform" class="hid" style="margin-top:12px"><label class="sub">Tvoje IC jméno</label><input type="text" id="icn" maxlength="40" placeholder="např. Jan Novák"><button class="pri" id="icb" style="margin-top:10px">Pokračovat</button></div></div></div>
+<div class="w hid" id="app">
+<div class="tabs" id="tabs"><button data-t="calc" class="on">Kalkulačka</button><button data-t="mine">Moje várky</button></div>
+<div id="vcalc" style="display:grid;gap:14px">
+<div><h1>🌿 Kalkulačka pěstování</h1><p class="sub">Vyber počet rostlin, zadej co už máš a my spočítáme zbytek.</p></div>
+
+<div class="c"><h2>Počet kytek</h2>
+<div class="row"><input type="range" id="rs" min="1" max="100" value="10"><input type="number" id="rn" min="0" value="10"></div>
+<div class="row btns" style="margin-top:8px"><button data-a="1">+1</button><button data-a="5">+5</button><button data-a="10">+10</button><button data-a="-5">−5</button><button data-a="-10">−10</button></div>
+</div>
+
+<div class="c"><h2>Co už máš (zásoby)</h2>
+<div class="grid">
+<label>Hnojivo (normální)<input type="number" id="oFN" min="0" value="0"></label>
+<label>Výživné hnojivo<input type="number" id="oFV" min="0" value="0"></label>
+<label>Voda (normální)<input type="number" id="oWN" min="0" value="0"></label>
+<label>Výživná voda<input type="number" id="oWV" min="0" value="0"></label>
+</div>
+<div class="note">Zásoby se započítají jako procenta a zbytek se dokoupí. Např. 4 výživná hnojiva = 80 % pro jednu kytku.</div>
+</div>
+
+<div class="c"><h2>Čím dokoupit zbytek</h2>
+<div class="seg" id="mode">
+<button data-m="mix" class="on">⚡ Nejlevněji / nejméně kusů</button>
+<button data-m="n">Jen normální</button>
+<button data-m="v">Jen výživné</button>
+</div></div>
+
+<div class="c"><h2>Co nakoupit</h2>
+<table><thead><tr><th>Položka</th><th>Koupit</th><th>Cena/ks</th><th>Celkem</th></tr></thead><tbody id="tb"></tbody></table>
+<div class="tot"><span>Celková cena</span><b id="total">0</b></div>
+<div class="grid" style="margin-top:12px">
+<div><div class="note" style="margin:0">Cena na 1 kytku</div><b id="per">0</b></div>
+<div><div class="note" style="margin:0">Ušetřeno zásobami</div><b id="saved">0</b></div>
+</div>
+<div class="note" style="margin-top:12px">Hnojení pokryto</div><div class="bar"><i id="bf"></i></div>
+<div class="note">Zalévání pokryto</div><div class="bar"><i id="bw"></i></div>
+<div class="note" id="extra"></div>
+</div>
+
+<details class="c"><summary>⚙️ Nastavení cen a procent</summary>
+<div class="grid" style="margin-top:12px">
+<label>Cena hnojiva (normální)<input type="number" id="pFN" value="25"></label>
+<label>Cena výživného hnojiva<input type="number" id="pFV" value="50"></label>
+<label>Cena vody (normální)<input type="number" id="pWN" value="10"></label>
+<label>Cena výživné vody<input type="number" id="pWV" value="20"></label>
+<label>% hnojiva (normální)<input type="number" id="cFN" value="10"></label>
+<label>% výživného hnojiva<input type="number" id="cFV" value="20"></label>
+<label>% vody (normální)<input type="number" id="cWN" value="10"></label>
+<label>% výživné vody<input type="number" id="cWV" value="20"></label>
+</div>
+<div class="note">Výchozí: kytka potřebuje 100 % hnojení a 100 % vody = 10× normální nebo 5× výživné. Pokud ti normální hnojivo dává jen 5 %, přepiš to tady.</div>
+</details>
+<div class="c"><button class="pri" id="confirm">✅ Potvrdit nákup a založit várku</button><div class="note">Uloží se počet kytek a náklady. Zásoby se vynulují, protože se spotřebovaly.</div></div>
+</div>
+<div id="vmine" class="hid" style="display:grid;gap:14px"><div class="c"><h2>Moje statistiky <span class="sub" id="who"></span></h2><div class="st" id="mst"></div></div><div class="c"><h2>Moje várky</h2><div class="note">Data jsou uložená jen v tomto prohlížeči na tomto zařízení.</div><div id="blist"></div></div></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let mode="mix",LAST=null,S={name:'',batches:[],cfg:{}},UID=null,DB=null,IS_OWNER=false,saveT=null;
+const v=id=>Math.max(0,parseFloat($(id).value)||0);
+const fmt=n=>Math.round(n).toLocaleString("cs-CZ")+" $";
+function calc(){
+  const n=v("rn"),need=n*100;
+  const items=[
+   {k:"F",name:"Hnojivo (normální)",own:v("oFN"),c:v("cFN"),p:v("pFN")},
+   {k:"F",name:"Výživné hnojivo",own:v("oFV"),c:v("cFV"),p:v("pFV")},
+   {k:"W",name:"Voda (normální)",own:v("oWN"),c:v("cWN"),p:v("pWN")},
+   {k:"W",name:"Výživná voda",own:v("oWV"),c:v("cWV"),p:v("pWV")}];
+  let total=0,saved=0,rows="",extra=[];
+  const res={};
+  ["F","W"].forEach((k,i)=>{
+    const [a,b]=k==="F"?[items[0],items[1]]:[items[2],items[3]];
+    const have=a.own*a.c+b.own*b.c;
+    const rem=Math.max(0,need-have);
+    // mix: nejlevnější kombinace
+    let qa=0,qb=0;
+    if(rem>0){
+      if(mode==="n")qa=Math.ceil(rem/a.c);
+      else if(mode==="v")qb=Math.ceil(rem/b.c);
+      else{
+        let bestT=1e18,bestS=1e9,maxB=Math.ceil(rem/b.c);
+        for(let y=0;y<=maxB;y++){const x=Math.ceil(Math.max(0,rem-y*b.c)/a.c);
+          const t=x*a.p+y*b.p,s=x+y;
+          if(t<bestT||(t===bestT&&s<bestS)){bestT=t;bestS=s;qa=x;qb=y;}}
+      }
+    }
+    a.buy=qa;b.buy=qb;
+    const cover=need?Math.min(100,(have+qa*a.c+qb*b.c)/need*100):0;
+    const over=have+qa*a.c+qb*b.c-need;
+    if(over>0&&need>0)extra.push((k==="F"?"Hnojivo":"Voda")+": přebývá "+Math.round(over)+" % (zbytek propadne / ušetříš na další várku).");
+    saved+=a.own*a.p+b.own*b.p;
+    $(k==="F"?"bf":"bw").style.width=(need?Math.min(100,have/need*100):0)+"%";
+  });
+  items.forEach(it=>{const c=it.buy*it.p;total+=c;
+    rows+=`<tr><td>${it.name}</td><td><b>${it.buy}×</b></td><td>${it.p} $</td><td>${fmt(c)}</td></tr>`;});
+  $("tb").innerHTML=rows;
+  $("total").textContent=fmt(total);LAST={total,items:items.map(i=>({n:i.name,q:i.buy}))};
+  $("per").textContent=n?fmt(total/n):"0 $";
+    $("saved").textContent=fmt(Math.min(saved,n*(100/v("cFN")*v("pFN")+100/v("cWN")*v("pWN"))));
+  $("extra").textContent=extra.join(" ");
+}
+function setN(x){x=Math.max(0,Math.round(x));$("rn").value=x;if(x>+$("rs").max)$("rs").max=x;$("rs").value=x;calc();}
+$("rs").oninput=e=>setN(+e.target.value);
+$("rn").oninput=e=>setN(v("rn"));
+document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>setN(v("rn")+ +b.dataset.a));
+document.querySelectorAll("#mode button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll("#mode button").forEach(x=>x.classList.toggle("on",x===b));calc();});
+document.querySelectorAll("input[type=number]").forEach(i=>{if(i.id!=="rn")i.addEventListener("input",calc)});
+calc();
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const CFG=["pFN","pFV","pWN","pWV","cFN","cFV","cWN","cWV"];
+const KEY="pestovani_v1";
+function save(){S.cfg={};CFG.forEach(k=>S.cfg[k]=v(k));try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+CFG.forEach(k=>$(k).addEventListener("input",save));
+const sum=bs=>bs.reduce((a,b)=>({p:a.p+(+b.plants||0),y:a.y+(+b.yield||0),c:a.c+(+b.cost||0)}),{p:0,y:0,c:0});
+const stats=(bs)=>{const t=sum(bs);return `<div><b>${t.p}</b><span>kytek</span></div><div><b>${t.y}</b><span>hotového</span></div><div><b>${fmt(t.c)}</b><span>náklady</span></div>`};
+function batchHtml(b,i,own){const d=new Date(b.ts).toLocaleDateString("cs-CZ");
+return `<div class="b ${b.done?'done':''}"><div class="row" style="justify-content:space-between"><b>${d} ${b.done?'✅ hotovo':'🌱 roste'}</b><span>${fmt(b.cost)}</span></div>
+<div class="note">${esc(b.list||'')}</div>
+<div class="row" style="margin-top:6px"><label class="note">Kytek <input type="number" min="0" value="${b.plants}" ${own?`data-i="${i}" data-f="plants"`:'disabled'}></label>
+<label class="note">Hotového <input type="number" min="0" value="${b.yield||0}" ${own?`data-i="${i}" data-f="yield"`:'disabled'}></label></div>
+${own?`<div class="row" style="margin-top:8px"><button class="sm" data-i="${i}" data-act="done">${b.done?'↩ Znovu otevřít':'✅ Hotovo, vypěstováno'}</button><button class="sm" data-i="${i}" data-act="del">🗑 Smazat</button></div>`:''}</div>`}
+function renderMine(){$("who").textContent="– "+S.name;$("mst").innerHTML=stats(S.batches);
+$("blist").innerHTML=S.batches.length?S.batches.map((b,i)=>batchHtml(b,i,true)).join(""):'<div class="note">Zatím žádná várka. Spočítej si nákup a potvrď ho v kalkulačce.</div>';}
+$("blist").addEventListener("change",e=>{const t=e.target;if(t.dataset.f){S.batches[+t.dataset.i][t.dataset.f]=Math.max(0,+t.value||0);renderMine();save();}});
+$("blist").addEventListener("click",e=>{const t=e.target;if(!t.dataset.act)return;const i=+t.dataset.i;
+ if(t.dataset.act==="done")S.batches[i].done=!S.batches[i].done;
+ else if(confirm("Smazat tuto várku?"))S.batches.splice(i,1);renderMine();save();});
+$("confirm").onclick=()=>{if(!LAST||!v("rn"))return;
+ S.batches.unshift({id:Date.now(),ts:Date.now(),plants:v("rn"),yield:0,done:false,cost:LAST.total,list:LAST.items.filter(x=>x.q).map(x=>x.q+"× "+x.n).join(", ")});
+ ["oFN","oFV","oWN","oWV"].forEach(k=>$(k).value=0);calc();renderMine();save();tab("mine");};
+function tab(t){["calc","mine"].forEach(x=>$("v"+x).classList.toggle("hid",x!==t));
+ document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+function start(){$("gate").classList.add("hid");$("app").classList.remove("hid");
+ CFG.forEach(k=>{if(S.cfg&&S.cfg[k]!=null)$(k).value=S.cfg[k]});S.batches=S.batches||[];calc();renderMine();}
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign({name:"",batches:[],cfg:{}},JSON.parse(r));}catch(e){}
+if(S.name)start();else{$("gmsg").textContent="Než začneš, zadej své jméno postavy.";$("gform").classList.remove("hid");
+ $("icb").onclick=()=>{const n=$("icn").value.trim();if(!n)return;S.name=n;save();start();};}
+</script></body></html>
